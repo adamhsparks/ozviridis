@@ -31,6 +31,7 @@ To do this you only need a few packages from CRAN:
 library(raster)
 library(ggplot2)
 library(viridis)
+library(ggthemes)
 
 ```
 
@@ -93,12 +94,13 @@ colnames(oz_heat_df) <- c("Longitude", "Latitude", "Temperature")
 Now, you can plot this directly from the spatial data, using the following method as described in the tidyverse here, https://github.com/tidyverse/ggplot2/wiki/plotting-polygon-shapefiles:
 
 
-```{r eval = TRUE}
+```{r plot, eval = TRUE}
 ggplot(data = oz_heat_df, aes(y = Latitude, x = Longitude)) +
   geom_raster(aes(fill = Temperature)) +
   scale_fill_viridis(option = "inferno") +
   geom_polygon(data = oz_shape, aes(x = long, y = lat, group = group),
-               fill = NA, color = "white", size = 0.25) +
+               fill = NA, color = "black", size = 0.25) +
+  theme_map() +
+  theme(legend.position = c(1, .5)) +
   coord_quickmap()
-
 ```

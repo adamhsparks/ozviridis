@@ -28,6 +28,7 @@ library(raster)
 ``` r
 library(ggplot2)
 library(viridis)
+library(ggthemes)
 ```
 
 and one from ROpenSciLabs, [rnaturalearth](https://github.com/ropenscilabs/rnaturalearth):
@@ -98,10 +99,12 @@ ggplot(data = oz_heat_df, aes(y = Latitude, x = Longitude)) +
   geom_raster(aes(fill = Temperature)) +
   scale_fill_viridis(option = "inferno") +
   geom_polygon(data = oz_shape, aes(x = long, y = lat, group = group),
-               fill = NA, color = "white", size = 0.25) +
+               fill = NA, color = "black", size = 0.25) +
+  theme_map() +
+  theme(legend.position = c(1, .5)) +
   coord_quickmap()
 ```
 
     ## Regions defined for each Polygons
 
-![](README_files/figure-markdown_github/unnamed-chunk-2-1.png)
+![](README_files/figure-markdown_github/plot-1.png)
