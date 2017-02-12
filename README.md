@@ -1,11 +1,9 @@
 
 This is a fork of @njtierney's [ozviridis](https://github.com/njtierney/ozviridis) project. I'm building on what he's started, but making the map my way.
 
-As Nicholas originally observed, &gt; "there's a heatwave in Australia at the moment. And this is the heatmap that is getting shown of Australia:
+As Nicholas originally observed on 12-Feb-2017,
 
-``` r
-knitr::include_graphics("bom-heat-map.png")
-```
+> "there's a heatwave in Australia at the moment. And this is the heatmap that is getting shown of Australia:
 
 <img src="bom-heat-map.png" width="50%" style="display: block; margin: auto;" />
 
