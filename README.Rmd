@@ -1,112 +1,78 @@
 ---
-output:
-  md_document:
-    variant: markdown_github
+output: github_document
 ---
 
-There's a heatwave in Australia at the moment. And this is the heatmap that is getting shown of Australia:
+# Using viridis' "inferno" to map Australian temperatures on Feb. 11, 2017
 
-```{r out.width = "50%", fig.align='center'}
+This is a fork of @njtierney's [ozviridis](https://github.com/njtierney/ozviridis) project. I'm building on what he's started, but making the map my way.
+
+As Nicholas originally observed on 12-Feb-2017,
+
+> "there's a heatwave in Australia at the moment. And this is the heatmap that is getting shown of Australia:
+
+```{r out.width = "50%", fig.align='center', echo=FALSE}
 
 knitr::include_graphics("bom-heat-map.png")
 
 ```
 
-Which shows that things are really hot.
+> Which shows that things are really hot.
 
-But it's also pretty darn ugly. 
+Verymuchso.
 
-I wanted to see if I could make it better, using awesome packages like `viridis` to colour the heat more appropriately.
+> But it's also pretty darn ugly. 
 
-So this repository is me documenting my struggle with shapefiles and geospatial data. I haven't had to work with this sort of data before, so I'm making an effort to be as transparent as possible with my thoughts on doing this.
+Almost as ugly as the temperatures outside.
 
-Eventually this will get written up into a blog post. But I figured that it would be nice to put on github like this, so that others can contribute, if they like.
+Nicholas wanted to see if he could use the `viridis` package to improve this map. I completely agree. This should be doable.
 
-OK, so first we load the packages.
+To do this you only need a few packages from CRAN:
 
-```{r pkg-load}
+```{r pkg-load, eval=TRUE}
 
-library(rgdal)
-library(rgeos)
-library(maptools)
+library(raster)
 library(ggplot2)
 library(viridis)
+library(ggthemes)
 
 ```
 
-Then we load the data, retrieved from [the bom site](http://www.bom.gov.au/jsp/awap/temp/index.jsp) - thanks to [Robbi Bishop Taylor](https://twitter.com/robbibt) for pointing out where to get it!
+One from ROpenSciLabs, [rnaturalearth](https://github.com/ropenscilabs/rnaturalearth):
 
-```{r pkg-read}
-library(ozviridis)
-data("oz_heat")
+```{r install_rnaturalearth, eval=TRUE}
+# if (!require("devtools")) install.packages("devtools")
+#devtools::install_github("ropenscilabs/rnaturalearth")
+library("rnaturalearth")
 
-class(oz_heat)
-# oz_heat <- readGDAL("2017-02-11-oz-heat.grid") # reads in the whole raster
+```
+And one from SWISH, [awaptools](https://github.com/swish-climate-impact-assessment/awaptools):
+```{r install_awaptools, eval = TRUE}
+#devtools::install_github("awaptools", "swish-climate-impact-assessment")
+library(awaptools)
 
 ```
 
-# Quick methods for plotting
+Using `awaptools` get the mean maximum for February 12 2017.
 
-OK, so I can get a pretty basic plot with base `image`.
+```{r read_grid, eval=TRUE}
+awaptools::get_awap_data(start = "2017-02-11", end = "2017-02-11", measure = "maxave")
 
-```{r}
-
-image(oz_heat) # does a plot
-
-```
-
-But the colour scale isn't great.
-
-With the `viridis` package I can make them look pretty.
-
-```{r}
-
-image(oz_heat,
-      col = viridis(15,
-                    option = "magma")
-      )
-
-image(oz_heat,
-      col = viridis(15,
-                    option = "plasma")
-      )
-
-image(oz_heat,
-      col = viridis(15,
-                    option = "viridis")
-      )
-
+oz_heat <- raster::raster("maxave_2017021120170211.grid")
 
 ```
 
-There's also the default `spplot` from `sp`
-
-```{r}
-
-spplot(oz_heat,
-       col = viridis(15,
-                     option = "plasma"))
+```{r plot_bom_grid, eval=TRUE}
+raster::plot(oz_heat)
 
 ```
 
-So, the goal from here is to:
-
-- Add the shapefile of Australia
-- use `sf`
-- Plot using ggplot
-- add better legends etc to make it look more similar to the BoM image
-
+The plot works, the colours might not be any better than BoM though. We'll get to that.
 
 ## Adding the shapefile of Australia
 
+Now that the temperature data is in R, use the `rnaturalearthdata` package to get an outline of Australia. We'll use this to map so we can see the states, but also to clean up the map a bit, see that previous figure? You can sorta pick Australia out, but it's not clearly defined. We can use this to fix that.
 
-ROpenSciLabs has a `naturalearthdata` package that is fast and easy to use. Thank you to adamhsparks for finding this and adding to the README!
-
-```{r}
-# if (!require("devtools")) install.packages("devtools")
-# devtools::install_github("ropenscilabs/rnaturalearth")
-
-library("rnaturalearth")
+```{r, australia}
 
 oz_shape <- rnaturalearth::ne_states(geounit = "australia")
 
@@ -114,161 +80,76 @@ sp::plot(oz_shape)
 
 ```
 
+## Clean up the heat map
 
+Using the [Naturalearthdata](http://www.naturalearthdata.com) object, now mask out only landmasses and trim down the outline, removing islands that stretch the map and aren't of interest. Note that we mask using the naturalearth object and crop using the heat map.
 
-## Using `sf`
-
-We can convert this to a simple features with `st_as_sf`:
-
-```{r}
-
-# convert to simple features
-oz_shape_sf <- sf::st_as_sf(oz_shape)
-
-head(oz_shape_sf)
+```{r mask_crop, eval=TRUE}
+oz_heat <- raster::mask(oz_heat, oz_shape)
+oz_shape <- raster::crop(oz_shape, oz_heat)
 
 ```
 
 ## Plot using ggplot2
 
-You can plot this directly from the spatial data, using the following method as described in the tidyverse here, https://github.com/tidyverse/ggplot2/wiki/plotting-polygon-shapefiles:
+Now we're ready to plot this up using `ggplot2`, but first, we need to make the raster object into a format that `ggplot2` can use.
 
+```{r convert, eval = TRUE}
+# Extract the data into a matrix
+oz_heat <- rasterToPoints(oz_heat)
 
-```{r}
+# Make the matrix a dataframe for ggplot
+oz_heat_df <- data.frame(oz_heat)
 
-ggplot(oz_shape) +
-   aes(x = long, 
-       y = lat, 
-       group = group) + 
-     geom_polygon() +
-     geom_path(color = "white") +
-     coord_equal()
+# Make appropriate column headings
+colnames(oz_heat_df) <- c("Longitude", "Latitude", "Temperature")
+```
+
+## Classify the heat map
+
+BoM shows the map in 3˚increments. We can reclassify the raster so that it will display in the same way.
+
+Using the `cut`, we'll set up our map in the same way.
+
+```{r cut, eval=TRUE}
+oz_heat_df$cuts <- as.factor(cut(oz_heat_df$Temperature,
+                           include.lowest = TRUE,
+                           breaks = seq(-6, 48, by = 3)))
 
 ```
 
-But there are some ways to plot this using the new package `sf`. Do add the temperatures, I think I'll need to add this for each row of each feature.
+Now, you can plot this directly from the spatial data, using the following method as described in the tidyverse here, https://github.com/tidyverse/ggplot2/wiki/plotting-polygon-shapefiles:
 
-```{r}
-nc <- sf::st_read(system.file("shape/nc.shp", package = "sf"), quiet = TRUE)
 
-head(nc)
+```{r plot, eval=TRUE}
+ggplot2::ggplot(data = na.omit(oz_heat_df), aes(y = Latitude, x = Longitude)) +
+  ggplot2::geom_raster(aes(fill = cuts)) +
+  viridis::scale_fill_viridis(option = "inferno", discrete = TRUE) +
+  ggplot2::guides(fill = guide_legend(reverse = TRUE)) +
+  ggplot2::geom_polygon(data = oz_shape, aes(x = long, y = lat, group = group),
+                        fill = NA, color = "black", size = 0.25) +
+  ggthemes::theme_map() +
+  ggplot2::theme(legend.position = c(1, 0.15),
+                 legend.text = element_text(size = 8),
+                 legend.title = element_blank()) +
+  ggplot2::labs(title = "Maximum Temperature (˚C)", 
+                subtitle = "11th February, 2017", 
+                caption = "Data: Australia Bureau of Meteorology (AWAP) and Naturalearthdata") +
+  ggplot2::coord_quickmap()
 ```
 
-However, the `ggplot2::geom_sf` unfortunately gives an error when plotting.
+That's much better and pretty close. I'd still like a neatline around my map, but right now using the `panel.grid` or `panel.background` doesn't cooperate with my legend placement, it places the legend outside the neatline.
 
-```{r eval = FALSE}
+Maybe later...
 
-ggplot(nc) +
-  geom_sf(aes(fill = AREA)) 
-# Error in sign(x) : non-numeric argument to mathematical function
+## Cleanup on the way out
+Remove the grid file that we downloaded earlier.
+```{r clenaup, eval=TRUE}
+unlink("maxave_2017021220170212.grid")
 ```
 
-So where to from here?
+## Appendix
 
-Perhaps back to base?
-
-```{r}
-
-sp::plot(oz_shape)
-
-spplot(oz_heat)
-
+```{r sessionInfo}
+sessionInfo()
 ```
-
-I feel like there should be some way for me to just write something like:
-
-```{r eval = FALSE}
-
-sp::plot(oz_shape,
-         fill = oz_heat)
-
-```
-
-But then this makes me start thinking how I'm used to with ggplot2 - where everything is in a dataframe. Which means that, given that my `sf` dataframe is 11 rows long:
-
-```{r}
-
-tibble::as_tibble(oz_shape_sf)
-
-```
-
-
-Each row in an `sf` dataframe describes a polygon, and then there are associated values for each of those polygons. So, in order for me to plot the associated colours with each feature, there should then be some interpolation process going on to give each polygon some sort of spatially smoothed temperature value.
-
-This is almost certainly my naïvety showing, but all I really want, is to plot the shape file, and then overlay the appropriately smoothed plot. Sort of like how one can do:
-
-```{r}
-plot(cars)
-lines(lowess(cars))
-```
-
-I'd like to do something like
-
-```{r eval = FALSE}
-
-plot(oz_shape)
-colours(oz_heat)
-
-```
-
-
-But I guess the problem here is how to combine those two pieces of information of different size. 
-
-There is not clear way to go from mapping the colours on a grid, to the shapefile, and what comes after this will be some sort of interpolation step to the shapefiles and polygons.
-
-Or maybe I'm completely wrong about this. And maybe I'm overthinking it and just need to do some proper reading in the right place.
-
-## Bob Rudis's answer on SO
-
-Munging the code from [Bob Rudis's answer on Stack Overflow](http://stackoverflow.com/a/33234951/3764040) about using ggplot2 to plot a raster I have something pretty close to what I'm after.
-
-```{r}
-library(rasterVis)
-library(ggthemes)
-class(oz_shape)
-test <- raster(oz_heat)
-test_spdf <- as(test, "SpatialPixelsDataFrame")
-test_df <- as.data.frame(test_spdf)
-colnames(test_df) <- c("value", "x", "y")
-
-```
-
-So here, we specify the raster tiles of the heat information, along with the polygon from the map, and then provide the scale using the Inferno option.
-
-```{r}
-oz_heat_map <-
-ggplot() +  
-  geom_tile(data = test_df, 
-            aes(x = x, 
-                y = y, 
-                fill = value)) + 
-  geom_polygon(data = oz_shape, 
-               aes(x = long, 
-                   y = lat, 
-                   group = group), 
-               fill = NA, 
-               color = "grey10", 
-               size = 0.3) +
-  scale_fill_viridis(option = "inferno") +
-  coord_equal() +
-  theme_map() +
-  theme(legend.position = c(0.95, 0.5))
-  # theme(legend.key.width=unit(2, "cm"))
-```
-
-```{r}
-oz_heat_map
-```
-
-I owe Bob a beer.
-
-My friend Maëlle also pointed me to [Bob's blog post](https://rud.is/b/2016/07/27/u-s-drought-animations-with-the-witchs-brew-purrr-broom-magick/) that does a bit more of what I want, I think.
-
-## Add better legends etc to make it look more similar to the BoM image
-
-Getting there! But for another day.
-
-Things that I want to do before I write this up as a blog post:
-
-- Control the level of smoothing of the tiles, perhaps bin up the temperatures in 5 degree bins.
-- Make sure that this approach I'm taking is inline with the current state of the art - should I be using `sf`, can I use `geom_sf`? And more.
