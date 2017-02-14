@@ -26,7 +26,7 @@ Almost as ugly as the temperatures outside.
 
 Nicholas wanted to see if he could use the `viridis` package to improve this map. I completely agree. This should be doable.
 
-To do this you only need a few packages from CRAN:
+To do this you'll need a few packages from CRAN:
 
 ```{r pkg-load, eval=TRUE}
 
@@ -34,20 +34,22 @@ library(raster)
 library(ggplot2)
 library(viridis)
 library(ggthemes)
+library(grid)
+library(gridExtra)
 
 ```
 
 One from ROpenSciLabs, [rnaturalearth](https://github.com/ropenscilabs/rnaturalearth):
 
 ```{r install_rnaturalearth, eval=TRUE}
-# if (!require("devtools")) install.packages("devtools")
-#devtools::install_github("ropenscilabs/rnaturalearth")
+if (!require("devtools")) install.packages("devtools")
+devtools::install_github("ropenscilabs/rnaturalearth")
 library("rnaturalearth")
 
 ```
 And one from SWISH, [awaptools](https://github.com/swish-climate-impact-assessment/awaptools):
 ```{r install_awaptools, eval = TRUE}
-#devtools::install_github("awaptools", "swish-climate-impact-assessment")
+devtools::install_github("awaptools", "swish-climate-impact-assessment")
 library(awaptools)
 
 ```
@@ -109,24 +111,27 @@ colnames(oz_heat_df) <- c("Longitude", "Latitude", "Temperature")
 
 BoM shows the map in 3˚increments. We can reclassify the raster so that it will display in the same way.
 
-Using the `cut`, we'll set up our map in the same way.
+Using the `cut` function, we'll set up our map in the same way.
 
 ```{r cut, eval=TRUE}
 oz_heat_df$cuts <- as.factor(cut(oz_heat_df$Temperature,
                            include.lowest = TRUE,
-                           breaks = seq(-6, 48, by = 3)))
+                           breaks = seq(-6, 54, by = 3)))
 
 ```
 
-Now, you can plot this directly from the spatial data, using the following method as described in the tidyverse here, https://github.com/tidyverse/ggplot2/wiki/plotting-polygon-shapefiles:
+Now, you can plot these together. Plot the new `data.frame`, `oz_heat` and layer a map of Australia on top of it. The Australian map can be plotted directly from the spatial data, using the following method as described in the tidyverse here, https://github.com/tidyverse/ggplot2/wiki/plotting-polygon-shapefiles:
 
 
 ```{r plot, eval=TRUE}
-ggplot2::ggplot(data = na.omit(oz_heat_df), aes(y = Latitude, x = Longitude)) +
+
+oz <- ggplot2::ggplot(data = na.omit(oz_heat_df), 
+                      aes(y = Latitude, x = Longitude)) +
   ggplot2::geom_raster(aes(fill = cuts)) +
   viridis::scale_fill_viridis(option = "inferno", discrete = TRUE) +
   ggplot2::guides(fill = guide_legend(reverse = TRUE)) +
-  ggplot2::geom_polygon(data = oz_shape, aes(x = long, y = lat, group = group),
+  ggplot2::geom_polygon(data = oz_shape, 
+                        aes(x = long, y = lat, group = group),
                         fill = NA, color = "black", size = 0.25) +
   ggthemes::theme_map() +
   ggplot2::theme(legend.position = c(1, 0.15),
@@ -136,13 +141,21 @@ ggplot2::ggplot(data = na.omit(oz_heat_df), aes(y = Latitude, x = Longitude)) +
                 subtitle = "11th February, 2017", 
                 caption = "Data: Australia Bureau of Meteorology (AWAP) and Naturalearthdata") +
   ggplot2::coord_quickmap()
+
+# Using the gridExtra and grid packages add a neatline to the map
+gridExtra::grid.arrange(oz, ncol = 1)
+grid::grid.rect(width = 0.98, 
+                height = 0.98, 
+                gp = grid::gpar(lwd = 0.25, 
+                                col = "black",
+                                fill = NA))
+
 ```
 
-That's much better and pretty close. I'd still like a neatline around my map, but right now using the `panel.grid` or `panel.background` doesn't cooperate with my legend placement, it places the legend outside the neatline.
-
-Maybe later...
+That's much better and pretty close to what BoM originally created. Using any of the `ggplot` `panel.background` or `panel.grid` result in the legend being outside the line, so not really a neatline for a map. Using the `gridExtra` and `grid` packages fixes this.
 
 ## Cleanup on the way out
+
 Remove the grid file that we downloaded earlier.
 ```{r clenaup, eval=TRUE}
 unlink("maxave_2017021220170212.grid")

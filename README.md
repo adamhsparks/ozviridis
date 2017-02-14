@@ -20,7 +20,7 @@ Almost as ugly as the temperatures outside.
 
 Nicholas wanted to see if he could use the `viridis` package to improve this map. I completely agree. This should be doable.
 
-To do this you only need a few packages from CRAN:
+To do this you'll need a few packages from CRAN:
 
 ``` r
 library(raster)
@@ -32,20 +32,42 @@ library(raster)
 library(ggplot2)
 library(viridis)
 library(ggthemes)
+library(grid)
+library(gridExtra)
 ```
 
 One from ROpenSciLabs, [rnaturalearth](https://github.com/ropenscilabs/rnaturalearth):
 
 ``` r
-# if (!require("devtools")) install.packages("devtools")
-#devtools::install_github("ropenscilabs/rnaturalearth")
+if (!require("devtools")) install.packages("devtools")
+```
+
+    ## Loading required package: devtools
+
+``` r
+devtools::install_github("ropenscilabs/rnaturalearth")
+```
+
+    ## Skipping install of 'rnaturalearth' from a github remote, the SHA1 (cc17bb58) has not changed since last install.
+    ##   Use `force = TRUE` to force installation
+
+``` r
 library("rnaturalearth")
 ```
 
 And one from SWISH, [awaptools](https://github.com/swish-climate-impact-assessment/awaptools):
 
 ``` r
-#devtools::install_github("awaptools", "swish-climate-impact-assessment")
+devtools::install_github("awaptools", "swish-climate-impact-assessment")
+```
+
+    ## Warning: Username parameter is deprecated. Please use swish-climate-impact-
+    ## assessment/awaptools
+
+    ## Skipping install of 'awaptools' from a github remote, the SHA1 (9b93f025) has not changed since last install.
+    ##   Use `force = TRUE` to force installation
+
+``` r
 library(awaptools)
 ```
 
@@ -111,22 +133,24 @@ Classify the heat map
 
 BoM shows the map in 3˚increments. We can reclassify the raster so that it will display in the same way.
 
-Using the `cut`, we'll set up our map in the same way.
+Using the `cut` function, we'll set up our map in the same way.
 
 ``` r
 oz_heat_df$cuts <- as.factor(cut(oz_heat_df$Temperature,
                            include.lowest = TRUE,
-                           breaks = seq(-6, 48, by = 3)))
+                           breaks = seq(-6, 54, by = 3)))
 ```
 
-Now, you can plot this directly from the spatial data, using the following method as described in the tidyverse here, <https://github.com/tidyverse/ggplot2/wiki/plotting-polygon-shapefiles>:
+Now, you can plot these together. Plot the new `data.frame`, `oz_heat` and layer a map of Australia on top of it. The Australian map can be plotted directly from the spatial data, using the following method as described in the tidyverse here, <https://github.com/tidyverse/ggplot2/wiki/plotting-polygon-shapefiles>:
 
 ``` r
-ggplot2::ggplot(data = na.omit(oz_heat_df), aes(y = Latitude, x = Longitude)) +
+oz <- ggplot2::ggplot(data = na.omit(oz_heat_df), 
+                      aes(y = Latitude, x = Longitude)) +
   ggplot2::geom_raster(aes(fill = cuts)) +
   viridis::scale_fill_viridis(option = "inferno", discrete = TRUE) +
   ggplot2::guides(fill = guide_legend(reverse = TRUE)) +
-  ggplot2::geom_polygon(data = oz_shape, aes(x = long, y = lat, group = group),
+  ggplot2::geom_polygon(data = oz_shape, 
+                        aes(x = long, y = lat, group = group),
                         fill = NA, color = "black", size = 0.25) +
   ggthemes::theme_map() +
   ggplot2::theme(legend.position = c(1, 0.15),
@@ -140,11 +164,19 @@ ggplot2::ggplot(data = na.omit(oz_heat_df), aes(y = Latitude, x = Longitude)) +
 
     ## Regions defined for each Polygons
 
+``` r
+# Using the gridExtra and grid packages add a neatline to the map
+gridExtra::grid.arrange(oz, ncol = 1)
+grid::grid.rect(width = 0.98, 
+                height = 0.98, 
+                gp = grid::gpar(lwd = 0.25, 
+                                col = "black",
+                                fill = NA))
+```
+
 ![](README_files/figure-markdown_github/plot-1.png)
 
-That's much better and pretty close. I'd still like a neatline around my map, but right now using the `panel.grid` or `panel.background` doesn't cooperate with my legend placement, it places the legend outside the neatline.
-
-Maybe later...
+That's much better and pretty close to what BoM originally created. Using any of the `ggplot` `panel.background` or `panel.grid` result in the legend being outside the line, so not really a neatline for a map. Using the `gridExtra` and `grid` packages fixes this.
 
 Cleanup on the way out
 ----------------------
@@ -163,32 +195,35 @@ sessionInfo()
 ```
 
     ## R version 3.3.2 (2016-10-31)
-    ## Platform: x86_64-apple-darwin16.4.0 (64-bit)
-    ## Running under: macOS Sierra 10.12.3
+    ## Platform: x86_64-apple-darwin15.6.0 (64-bit)
+    ## Running under: OS X El Capitan 10.11.6
     ## 
     ## locale:
     ## [1] en_AU.UTF-8/en_AU.UTF-8/en_AU.UTF-8/C/en_AU.UTF-8/en_AU.UTF-8
     ## 
     ## attached base packages:
-    ## [1] stats     graphics  grDevices utils     datasets  methods   base     
+    ## [1] grid      stats     graphics  grDevices utils     datasets  methods  
+    ## [8] base     
     ## 
     ## other attached packages:
-    ## [1] awaptools_1.2.1     rnaturalearth_0.1.0 ggthemes_3.3.0     
-    ## [4] viridis_0.3.4       ggplot2_2.2.1       raster_2.5-8       
-    ## [7] sp_1.2-4           
+    ## [1] awaptools_1.2.1     rnaturalearth_0.1.0 devtools_1.12.0    
+    ## [4] gridExtra_2.2.1     ggthemes_3.3.0      viridis_0.3.4      
+    ## [7] ggplot2_2.2.1       raster_2.5-8        sp_1.2-4           
     ## 
     ## loaded via a namespace (and not attached):
     ##  [1] Rcpp_0.12.9                   knitr_1.15.1                 
     ##  [3] magrittr_1.5                  munsell_0.4.3                
     ##  [5] colorspace_1.3-2              lattice_0.20-34              
-    ##  [7] stringr_1.1.0                 plyr_1.8.4                   
-    ##  [9] rnaturalearthhires_0.0.0.9000 tools_3.3.2                  
-    ## [11] rgdal_1.2-5                   grid_3.3.2                   
-    ## [13] gtable_0.2.0                  rgeos_0.3-22                 
-    ## [15] htmltools_0.3.5               yaml_2.1.14                  
-    ## [17] lazyeval_0.2.0                rprojroot_1.2                
-    ## [19] digest_0.6.12                 assertthat_0.1               
-    ## [21] tibble_1.2                    gridExtra_2.2.1              
-    ## [23] evaluate_0.10                 rmarkdown_1.3.9002           
-    ## [25] labeling_0.3                  stringi_1.1.2                
-    ## [27] scales_0.4.1                  backports_1.0.5
+    ##  [7] R6_2.2.0                      httr_1.2.1                   
+    ##  [9] stringr_1.1.0                 plyr_1.8.4                   
+    ## [11] rnaturalearthhires_0.0.0.9000 tools_3.3.2                  
+    ## [13] rgdal_1.2-5                   gtable_0.2.0                 
+    ## [15] git2r_0.18.0                  withr_1.0.2                  
+    ## [17] rgeos_0.3-22                  htmltools_0.3.5              
+    ## [19] yaml_2.1.14                   lazyeval_0.2.0               
+    ## [21] rprojroot_1.2                 digest_0.6.12                
+    ## [23] assertthat_0.1                tibble_1.2                   
+    ## [25] curl_2.3                      memoise_1.0.0                
+    ## [27] evaluate_0.10                 rmarkdown_1.3                
+    ## [29] labeling_0.3                  stringi_1.1.2                
+    ## [31] scales_0.4.1                  backports_1.0.5
