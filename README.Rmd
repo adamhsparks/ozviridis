@@ -44,14 +44,14 @@ library(gridExtra)
 One from ROpenSciLabs, [rnaturalearth](https://github.com/ropenscilabs/rnaturalearth):
 
 ```{r install_rnaturalearth, eval=TRUE}
-if (!require("devtools")) install.packages("devtools")
-devtools::install_github("ropenscilabs/rnaturalearth")
+#if (!require("devtools")) install.packages("devtools")
+#devtools::install_github("ropenscilabs/rnaturalearth")
 library("rnaturalearth")
 
 ```
 And one from SWISH, [awaptools](https://github.com/swish-climate-impact-assessment/awaptools):
 ```{r install_awaptools, eval = TRUE}
-devtools::install_github("swish-climate-impact-assessment/awaptools")
+#devtools::install_github("swish-climate-impact-assessment/awaptools")
 library(awaptools)
 
 ```

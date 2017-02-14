@@ -42,32 +42,15 @@ library(gridExtra)
 One from ROpenSciLabs, [rnaturalearth](https://github.com/ropenscilabs/rnaturalearth):
 
 ``` r
-if (!require("devtools")) install.packages("devtools")
-```
-
-    ## Loading required package: devtools
-
-``` r
-devtools::install_github("ropenscilabs/rnaturalearth")
-```
-
-    ## Skipping install of 'rnaturalearth' from a github remote, the SHA1 (cc17bb58) has not changed since last install.
-    ##   Use `force = TRUE` to force installation
-
-``` r
+#if (!require("devtools")) install.packages("devtools")
+#devtools::install_github("ropenscilabs/rnaturalearth")
 library("rnaturalearth")
 ```
 
 And one from SWISH, [awaptools](https://github.com/swish-climate-impact-assessment/awaptools):
 
 ``` r
-devtools::install_github("swish-climate-impact-assessment/awaptools")
-```
-
-    ## Skipping install of 'awaptools' from a github remote, the SHA1 (9b93f025) has not changed since last install.
-    ##   Use `force = TRUE` to force installation
-
-``` r
+#devtools::install_github("swish-climate-impact-assessment/awaptools")
 library(awaptools)
 ```
 
@@ -218,25 +201,21 @@ Appendix
     ## [8] base     
     ## 
     ## other attached packages:
-    ## [1] awaptools_1.2.1      rnaturalearth_0.1.0  devtools_1.12.0.9000
-    ## [4] gridExtra_2.2.1      ggthemes_3.3.0       viridis_0.3.4       
-    ## [7] ggplot2_2.2.1        raster_2.5-8         sp_1.2-4            
+    ## [1] awaptools_1.2.1     rnaturalearth_0.1.0 gridExtra_2.2.1    
+    ## [4] ggthemes_3.3.0      viridis_0.3.4       ggplot2_2.2.1      
+    ## [7] raster_2.5-8        sp_1.2-4           
     ## 
     ## loaded via a namespace (and not attached):
-    ##  [1] Rcpp_0.12.9                   git2r_0.18.0                 
-    ##  [3] plyr_1.8.4                    tools_3.3.2                  
-    ##  [5] digest_0.6.12                 pkgbuild_0.0.0.9000          
-    ##  [7] pkgload_0.0.0.9000            evaluate_0.10                
-    ##  [9] memoise_1.0.0                 tibble_1.2                   
-    ## [11] gtable_0.2.0                  lattice_0.20-34              
-    ## [13] curl_2.3                      yaml_2.1.14                  
-    ## [15] rgdal_1.2-5                   withr_1.0.2                  
-    ## [17] stringr_1.1.0                 httr_1.2.1                   
-    ## [19] knitr_1.15.1                  rgeos_0.3-22                 
-    ## [21] rprojroot_1.2                 R6_2.2.0                     
-    ## [23] rmarkdown_1.3.9002            magrittr_1.5                 
-    ## [25] backports_1.0.5               scales_0.4.1                 
-    ## [27] htmltools_0.3.5               rnaturalearthhires_0.0.0.9000
-    ## [29] assertthat_0.1                colorspace_1.3-2             
-    ## [31] labeling_0.3                  stringi_1.1.2                
-    ## [33] lazyeval_0.2.0                munsell_0.4.3
+    ##  [1] Rcpp_0.12.9                   knitr_1.15.1                 
+    ##  [3] magrittr_1.5                  munsell_0.4.3                
+    ##  [5] colorspace_1.3-2              lattice_0.20-34              
+    ##  [7] stringr_1.1.0                 plyr_1.8.4                   
+    ##  [9] rnaturalearthhires_0.0.0.9000 tools_3.3.2                  
+    ## [11] rgdal_1.2-5                   gtable_0.2.0                 
+    ## [13] rgeos_0.3-22                  htmltools_0.3.5              
+    ## [15] yaml_2.1.14                   lazyeval_0.2.0               
+    ## [17] rprojroot_1.2                 digest_0.6.12                
+    ## [19] assertthat_0.1                tibble_1.2                   
+    ## [21] evaluate_0.10                 rmarkdown_1.3.9002           
+    ## [23] labeling_0.3                  stringi_1.1.2                
+    ## [25] scales_0.4.1                  backports_1.0.5
