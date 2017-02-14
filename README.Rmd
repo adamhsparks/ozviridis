@@ -51,7 +51,7 @@ library("rnaturalearth")
 ```
 And one from SWISH, [awaptools](https://github.com/swish-climate-impact-assessment/awaptools):
 ```{r install_awaptools, eval = TRUE}
-devtools::install_github("awaptools", "swish-climate-impact-assessment")
+devtools::install_github("swish-climate-impact-assessment/awaptools")
 library(awaptools)
 
 ```
@@ -115,7 +115,7 @@ colnames(oz_heat_df) <- c("Longitude", "Latitude", "Temperature")
 
 ## Classify the heat map
 
-BoM shows the map in 3˚increments. We can reclassify the raster so that it will display in the same way.
+BoM shows the map in 3˚C increments. We can reclassify the raster so that it will display in the same way.
 
 Using the `cut` function, we'll set up our map in the same way.
 
@@ -166,11 +166,15 @@ That's much better and pretty close to what BoM originally created. Using any of
 
 Remove the grid file that we downloaded earlier.
 ```{r clenaup, eval=TRUE}
-unlink("maxave_2017021220170212.grid")
+unlink("maxave_2017021120170211.grid")
 ```
+
+# Meta
+
+Please note that this project is released with a [Contributor Code of Conduct](CONDUCT.md). By participating in this project you agree to abide by its terms.
 
 # Appendix
 
-```{r sessionInfo}
+```{r sessionInfo, eval=TRUE, echo=FALSE}
 sessionInfo()
 ```

@@ -61,11 +61,8 @@ library("rnaturalearth")
 And one from SWISH, [awaptools](https://github.com/swish-climate-impact-assessment/awaptools):
 
 ``` r
-devtools::install_github("awaptools", "swish-climate-impact-assessment")
+devtools::install_github("swish-climate-impact-assessment/awaptools")
 ```
-
-    ## Warning: Username parameter is deprecated. Please use swish-climate-impact-
-    ## assessment/awaptools
 
     ## Skipping install of 'awaptools' from a github remote, the SHA1 (9b93f025) has not changed since last install.
     ##   Use `force = TRUE` to force installation
@@ -83,7 +80,12 @@ Using `awaptools` get the mean maximum for February 11 2017.
 
 ``` r
 awaptools::get_awap_data(start = "2017-02-11", end = "2017-02-11", measure = "maxave")
+```
 
+    ## [1] "Non linux or windows os detected. Assume linux-alike."
+    ## [1] "maxave_2017021120170211.grid.Z"
+
+``` r
 oz_heat <- raster::raster("maxave_2017021120170211.grid")
 ```
 
@@ -137,7 +139,7 @@ colnames(oz_heat_df) <- c("Longitude", "Latitude", "Temperature")
 Classify the heat map
 ---------------------
 
-BoM shows the map in 3˚increments. We can reclassify the raster so that it will display in the same way.
+BoM shows the map in 3˚C increments. We can reclassify the raster so that it will display in the same way.
 
 Using the `cut` function, we'll set up our map in the same way.
 
@@ -193,19 +195,20 @@ Cleanup on the way out
 Remove the grid file that we downloaded earlier.
 
 ``` r
-unlink("maxave_2017021220170212.grid")
+unlink("maxave_2017021120170211.grid")
 ```
+
+Meta
+====
+
+Please note that this project is released with a [Contributor Code of Conduct](CONDUCT.md). By participating in this project you agree to abide by its terms.
 
 Appendix
 ========
 
-``` r
-sessionInfo()
-```
-
     ## R version 3.3.2 (2016-10-31)
-    ## Platform: x86_64-apple-darwin15.6.0 (64-bit)
-    ## Running under: OS X El Capitan 10.11.6
+    ## Platform: x86_64-apple-darwin16.4.0 (64-bit)
+    ## Running under: macOS Sierra 10.12.3
     ## 
     ## locale:
     ## [1] en_AU.UTF-8/en_AU.UTF-8/en_AU.UTF-8/C/en_AU.UTF-8/en_AU.UTF-8
@@ -215,24 +218,25 @@ sessionInfo()
     ## [8] base     
     ## 
     ## other attached packages:
-    ## [1] awaptools_1.2.1     rnaturalearth_0.1.0 devtools_1.12.0    
-    ## [4] gridExtra_2.2.1     ggthemes_3.3.0      viridis_0.3.4      
-    ## [7] ggplot2_2.2.1       raster_2.5-8        sp_1.2-4           
+    ## [1] awaptools_1.2.1      rnaturalearth_0.1.0  devtools_1.12.0.9000
+    ## [4] gridExtra_2.2.1      ggthemes_3.3.0       viridis_0.3.4       
+    ## [7] ggplot2_2.2.1        raster_2.5-8         sp_1.2-4            
     ## 
     ## loaded via a namespace (and not attached):
-    ##  [1] Rcpp_0.12.9                   knitr_1.15.1                 
-    ##  [3] magrittr_1.5                  munsell_0.4.3                
-    ##  [5] colorspace_1.3-2              lattice_0.20-34              
-    ##  [7] R6_2.2.0                      httr_1.2.1                   
-    ##  [9] stringr_1.1.0                 plyr_1.8.4                   
-    ## [11] rnaturalearthhires_0.0.0.9000 tools_3.3.2                  
-    ## [13] rgdal_1.2-5                   gtable_0.2.0                 
-    ## [15] git2r_0.18.0                  withr_1.0.2                  
-    ## [17] rgeos_0.3-22                  htmltools_0.3.5              
-    ## [19] yaml_2.1.14                   lazyeval_0.2.0               
-    ## [21] rprojroot_1.2                 digest_0.6.12                
-    ## [23] assertthat_0.1                tibble_1.2                   
-    ## [25] curl_2.3                      memoise_1.0.0                
-    ## [27] evaluate_0.10                 rmarkdown_1.3                
-    ## [29] labeling_0.3                  stringi_1.1.2                
-    ## [31] scales_0.4.1                  backports_1.0.5
+    ##  [1] Rcpp_0.12.9                   git2r_0.18.0                 
+    ##  [3] plyr_1.8.4                    tools_3.3.2                  
+    ##  [5] digest_0.6.12                 pkgbuild_0.0.0.9000          
+    ##  [7] pkgload_0.0.0.9000            evaluate_0.10                
+    ##  [9] memoise_1.0.0                 tibble_1.2                   
+    ## [11] gtable_0.2.0                  lattice_0.20-34              
+    ## [13] curl_2.3                      yaml_2.1.14                  
+    ## [15] rgdal_1.2-5                   withr_1.0.2                  
+    ## [17] stringr_1.1.0                 httr_1.2.1                   
+    ## [19] knitr_1.15.1                  rgeos_0.3-22                 
+    ## [21] rprojroot_1.2                 R6_2.2.0                     
+    ## [23] rmarkdown_1.3.9002            magrittr_1.5                 
+    ## [25] backports_1.0.5               scales_0.4.1                 
+    ## [27] htmltools_0.3.5               rnaturalearthhires_0.0.0.9000
+    ## [29] assertthat_0.1                colorspace_1.3-2             
+    ## [31] labeling_0.3                  stringi_1.1.2                
+    ## [33] lazyeval_0.2.0                munsell_0.4.3
