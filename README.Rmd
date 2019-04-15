@@ -63,14 +63,14 @@ library(awaptools)
 Using `awaptools` get the mean maximum for February 11 2017.
 
 ```{r read_grid, eval=TRUE}
-awaptools::get_awap_data(start = "2017-02-11", end = "2017-02-11", measure = "maxave")
+awaptools::get_awap_data(start = "2017-02-11", end = "2017-02-11", measure_i = "maxave")
 
 oz_heat <- raster::raster("maxave_2017021120170211.grid")
 
 ```
 
 ```{r plot_bom_grid, eval=TRUE}
-raster::plot(oz_heat)
+raster::plot(oz_heat, col = heat.colors(n = length(unique(oz_heat))))
 
 ```
 
@@ -103,11 +103,8 @@ oz_shape <- raster::crop(oz_shape, oz_heat)
 Now we're ready to plot this up using `ggplot2`, but first, we need to make the raster object into a format that `ggplot2` can use.
 
 ```{r convert, eval = TRUE}
-# Extract the data into a matrix
-oz_heat <- rasterToPoints(oz_heat)
-
-# Make the matrix a dataframe for ggplot
-oz_heat_df <- data.frame(oz_heat)
+# Extract the data into a data.frame for ggplot2
+oz_heat_df <- as.data.frame(raster::rasterToPoints(oz_heat))
 
 # Make appropriate column headings
 colnames(oz_heat_df) <- c("Longitude", "Latitude", "Temperature")
