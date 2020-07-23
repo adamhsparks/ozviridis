@@ -1,4 +1,13 @@
 
+# Notes on Jul. 23, 2020
+
+I’ve aligned the Viridis palette values with the BoM palette. BoM uses
+the same colour palatte for all maps, meaning the colours are aligned to
+specific temperatures that never change across the scale. So even if a
+temperature/colour does not appear on the map, it’s in the legend and
+the rest of the colours are all aligned across all maps. This makes it
+easy to compare maps at different points in time.
+
 # Notes on Jul. 20, 2020
 
 As I’ve done some reading and been revisiting this idea, I realised that
@@ -148,6 +157,43 @@ oz_heat_df$cuts <- as.factor(cut(
 ))
 ```
 
+## Create a new palette
+
+Using the Viridis palette, we’ll create a new palette to use with
+ggplot2 for us to map the colours against. First create a vector of
+plasma colours in hexadecimal format. Then assign names to each that
+correspond to the values found in the `oz_heat_df$cuts` column for
+mapping purposes.
+
+``` r
+plasma_bom <- plasma(n = (length(seq(-6, 57, by = 3))))
+
+names(plasma_bom) <- c(
+  "(54,100]",
+  "(51,54]",
+  "(48,51]",
+  "(45,48]",
+  "(42,45]",
+  "(39,42]",
+  "(36,39]",
+  "(33,36]",
+  "(30,33]",
+  "(27,30]",
+  "(24,27]",
+  "(21,24]",
+  "(18,21]",
+  "(15,18]",
+  "(12,15]",
+  "(9,12]",
+  "(6,9]",
+  "(3,6]",
+  "(0,3]",
+  "(-3,0]",
+  "(-6,-3]",
+  "(-100,-6]"
+)
+```
+
 ## The final product
 
 Now, you can plot these together. Plot the new `data.frame`, `oz_heat`
@@ -159,10 +205,8 @@ described in the tidyverse here,
 ``` r
 oz <- ggplot(data = na.omit(oz_heat_df),
              aes(y = Latitude, x = Longitude)) +
-  geom_raster(aes(fill = cuts)) +
-  scale_fill_viridis(option = "plasma",
-                     discrete = TRUE,
-                     direction = -1) +
+  geom_tile(aes(fill = cuts)) +
+  scale_fill_manual(name = "cuts", values = plasma_bom) +
   guides(fill = guide_legend(reverse = TRUE)) +
   geom_polygon(
     data = oz_shape,
@@ -188,12 +232,6 @@ oz <- ggplot(data = na.omit(oz_heat_df),
 ``` r
 # Using the gridExtra and grid packages add a neatline to the map
 grid.arrange(oz, ncol = 1)
-```
-
-    ## Warning: Raster pixels are placed at uneven vertical intervals and will be
-    ## shifted. Consider using geom_tile() instead.
-
-``` r
 grid.rect(
   width = 0.98,
   height = 0.98,
